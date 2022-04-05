@@ -1,20 +1,9 @@
-<h1>please sign up</h1>
-
-{{#if isLoggedIn}}
-    <p>You are connected</p>
-{{else}}
-    <p>You are disconnected</p>
-{{/if}}
-<nav>
-    <ul>
-        <a href="/login">Login</a>
-        <a href="/signup">Singup</a>
-    </ul>
-</nav>
-<a href="/Paris">Paris</a>
-<a href="/Lyon">Lyon</a>
-<a href="/Marseille">Marseille</a>
-
-<div>
-    <p>Plase</p>
-</div>
+<form action="/signup" method="POST" >
+    <input type="text" name="text" id="username">
+    <label for="username">username</label>
+    <input type="text" name="email" id="email">
+    <label for="email">Email</label>
+    <input type="text" name="password" id="password">
+    <label for="password">Password</label>
+    <input type="submit">
+</form>

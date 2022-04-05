@@ -26,8 +26,11 @@ app.get("/", (req, res) => {
 app.get("/login", (req, res) => {
 	res.render("login");
 });
+app.get("/signup", (req, res) => {
+	res.render("signup");
+});
 
-app.post("/login", (req, res) => {
+app.post("/signup", (req, res) => {
     // créer un utilisateur
 
 	console.log(req.body);
@@ -38,6 +41,22 @@ app.post("/login", (req, res) => {
 	res.cookie("jwt", token);
 
 	res.redirect("/profile");
+});
+app.get("/profile", (req, res) => {
+    
+	res.render("profile");
+});
+app.post("/login", (req, res) => {
+    // créer un utilisateur
+
+	console.log(req.body);
+
+	// créer token
+	const token = "eyJqdqsdsqfg";
+
+	res.cookie("jwt", token);
+
+	res.redirect("/products");
 });
 
 app.get("/contact", (req, res) => {
