@@ -1,12 +1,30 @@
 const express = require("express");
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const handlebars = require("express-handlebars");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const app = express();
-
+// Models
+const User = require("./models/User");
+const secret = "TZbMladabXvKgceHxrS9tHMwx8hE58";
 // Handlebars config
 app.engine("handlebars", handlebars.engine());
 app.set("view engine", "handlebars");
+
+// Connexion à MongoDB
+mongoose
+	.connect(
+		"mongodb+srv://Anita:gtXSsxboyg5LMeQQ@cluster0.oppld.mongodb.net/LPB?retryWrites=true&w=majority",
+		{
+			useNewUrlParser: true,
+		}
+	)
+	.then(() => {
+		console.log("Connected to MongoDB");
+	});
+
 
 // Middlewares
 app.use(cookieParser());
@@ -30,33 +48,69 @@ app.get("/signup", (req, res) => {
 	res.render("signup");
 });
 
-app.post("/signup", (req, res) => {
+app.post("/signup", async (req, res) => {
     // créer un utilisateur
+	if (req.body.confirmPassword != req.body.password ){
+        return res.status(400).json({
+        message: "Confirmation password does not match",
+    });
+    } 
+	// 1 - Hasher le mot de passe
+	const hashedPassword = await bcrypt.hash(req.body.password, 12);
+    const hashedConfirmPassword = await bcrypt.hash(req.body.confirmPassword, 12);
 
+	// 2 - Créer un utilisateur
+	try {
+		await User.create({
+			username: req.body.email,
+			email: req.body.email,
+            password: hashedPassword,
+            confirmPassword: hashedConfirmPassword,
+		});
+	} catch (err) {
+		return res.status(400).json({
+			message: "This account already exists",
+		});
+	}
 	console.log(req.body);
 
 	// créer token
-	const token = "eyJqdqsdsqfg";
-
-	res.cookie("jwt", token);
-
 	res.redirect("/profile");
 });
 app.get("/profile", (req, res) => {
     
 	res.render("profile");
 });
-app.post("/login", (req, res) => {
-    // créer un utilisateur
-
+app.post("/login", async (req, res) => {
+	const { email, password } = req.body;
 	console.log(req.body);
 
-	// créer token
-	const token = "eyJqdqsdsqfg";
+	// 1 - Vérifier si le compte associé à l'email existe
+	const user = await User.findOne({ email });
 
-	res.cookie("jwt", token);
+	if (!user) {
+		return res.status(400).json({
+			message: "Invalid email or password",
+		});
+	}
 
-	res.redirect("/products");
+	// 2 - Comparer le mot de passe au hash qui est dans la DB
+	const isPasswordValid = await bcrypt.compare(password, user.password);
+
+	if (!isPasswordValid) {
+		return res.status(400).json({
+			message: "Invalid email or password",
+		});
+	}
+	// 3 - Générer un token
+	const token = jwt.sign({ id: user._id }, secret);
+
+	// 4 - On met le token dans un cookie
+	res.cookie("jwt", token, { httpOnly: true, secure: false });
+
+	// 5 - Aller sur le page des products
+
+	res.redirect("/");
 });
 
 app.get("/contact", (req, res) => {
@@ -69,22 +123,20 @@ app.post("/contact", (req, res) => {
 });
 
 app.get("/products", async (req, res) => {
-	const token = req.cookies.jwt; // eyJfvdfhv5656fvdxfsd
-	const userId = 23;
 
-	if (!token) {
-		return res.redirect("/");
-	}
-
-	// const userData = await User.findById(userId);
-	// const userData = await Pool.query("SELECT * FROM users WHERE user_id=$1", [
-	// 	userId,
-	// ]);
-
+	 const userData = await User.findById(userId);
+		// 1 - Vérifier le token qui est dans le cookie
+		let data;
+		let products;
+		try {
+			data = jwt.verify(req.cookies.jwt, secret);
+			products= await Product.find();
+		} catch (err) {
+			returnres.redirect("/");
+		}
 	res.render("profile", {
-		// name: userData.name,
-		name: "Nicolas",
-		email: "nico@gmail.com",
+		username: userData.name,
+		email: userData.email,
 	});
 });
 
