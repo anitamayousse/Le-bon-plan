@@ -32,6 +32,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "/public")));
 // body du form de login
 app.use(express.urlencoded({ extended: true }));
+
 // Routes
 app.get("/", (req, res) => {
 	// renvoie un fichier html
@@ -43,7 +44,7 @@ app.get("/", (req, res) => {
 app.get("/login", (req, res) => {
 	res.render("login");
 });
-app.get("/signup/signup", (req, res) => {
+app.get("/signup", (req, res) => {
 	res.render("signup");
 });
 
@@ -71,11 +72,9 @@ app.post("/signup", async (req, res) => {
 			message: "This account already exists",
 		});
 	}
-	res.status(400).json({
-		message: `Account ${req.body.email} is created`,
-	  });
 	res.render("profile", {
 		isSignedUp: true,
+		isLoggedIn: true
 	  });
 	res.redirect("/profile");
 });
