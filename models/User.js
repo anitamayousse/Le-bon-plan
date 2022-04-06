@@ -14,15 +14,14 @@ const UserSchema = mongoose.Schema({
 	password: {
     type: String,
     required: true,
-    max: 8
+    min: 8
     
     },
     confirmPassword: {
-        type: String,
-        required: true,
-        max: 8
-        },
-    products: [{ type: mongoose.Types.ObjectId, ref: "Product" }],
+    type: String,
+    required: true,
+    min: 8
+        }
 });
 
 const User = mongoose.model("User", UserSchema);
